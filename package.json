@@ -1,0 +1,10 @@
+{
+  "name":"redis-node-http-proxy",
+  "version":"0.0.1",
+  "dependencies": {
+      "http-proxy":"0.8.0"
+    , "redis":"0.7.1"
+    , "hiredis":"0.1.14"
+    , "nconf":"0.5.1"
+  }
+}
