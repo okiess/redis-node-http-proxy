@@ -19,11 +19,18 @@ nconf.file({ file: 'config.json' }).load(function(err) {
   }
 });
 
+function internalServerError(res) {
+  res.writeHead(500, {
+    'Content-Type': 'text/plain'
+  });
+  res.end('Something went wrong!');
+}
+
 function start() {
   debugging = nconf.get('debugging');
   routing.loadRoutingTable(nconf, routingTable);
 
-  httpProxy.createServer(function (req, res, proxy) {
+  server = httpProxy.createServer(function (req, res, proxy) {
     var buffer = httpProxy.buffer(req);
     var destinationHosts = routingTable[req.headers.host];
     if (destinationHosts != null && destinationHosts.length > 0) {
@@ -39,13 +46,16 @@ function start() {
           buffer: buffer
         });
       } else {
-        res.statuscode = 404;
-        res.end();
         log("Host not found!");
+        internalServerError(res)
       }
     } else {
-      res.statuscode = 404;
-      res.end();
+      log("No destination hosts!");
+      internalServerError(res)
     }
-  }).listen(8000);
+  }).listen(80);
+
+  server.proxy.on('proxyError', function (err, req, res) {
+    internalServerError(res);
+  });
 }
