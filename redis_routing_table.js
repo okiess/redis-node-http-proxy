@@ -24,9 +24,13 @@ exports.loadRoutingTable = function(nconf, redisRoutingTable) {
               client.lrange('hosts', 0, length, function(err, hosts) {
                 for (var i = 0; i < hosts.length; i++) {
                   getHost = function(client, host, redisRoutingTable) {
-                    client.hget(host, 'host', function(err, dest) {
-                      console.log(host + " => " + dest);
-                      redisRoutingTable[host] = dest;
+                    client.llen(host, function(err, hostLength) {
+                      if (!err) {
+                        client.lrange(host, 0, hostLength, function(err, proxyHosts) {
+                          redisRoutingTable[host] = proxyHosts;
+                          console.log(redisRoutingTable);
+                        });
+                      }
                     });
                   }
                   getHost(client, hosts[i], redisRoutingTable);

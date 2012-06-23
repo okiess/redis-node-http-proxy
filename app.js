@@ -25,17 +25,27 @@ function start() {
 
   httpProxy.createServer(function (req, res, proxy) {
     var buffer = httpProxy.buffer(req);
-    var destinationHost = routingTable[req.headers.host];
-    log(req.url);
-    // log(req.headers.host + " => " + destinationHost);
-    req.headers.host = destinationHost;
+    var destinationHosts = routingTable[req.headers.host];
+    if (destinationHosts != null && destinationHosts.length > 0) {
+      var destinationHost = destinationHosts[Math.floor(Math.random() * destinationHosts.length)];
+      
+      log(req.url + " => " + destinationHost);
+      req.headers.host = destinationHost;
 
-    if (destinationHost != null) {
-      proxy.proxyRequest(req, res, {
-        host: destinationHost,
-        port: 80,
-        buffer: buffer
-      });
+      if (destinationHost != null) {
+        proxy.proxyRequest(req, res, {
+          host: destinationHost,
+          port: 80,
+          buffer: buffer
+        });
+      } else {
+        res.statuscode = 404;
+        res.end();
+        log("Host not found!");
+      }
+    } else {
+      res.statuscode = 404;
+      res.end();
     }
-  }).listen(80);
+  }).listen(8000);
 }
